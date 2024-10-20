@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+    </head>
+
+    <body>
+        <input type="text" id="messageInput" />
+        <button onclick="sendMessage()">发送</button>
+        <button onclick="connectSocket()">connect</button>
+        <button onclick="closeSocket()">close</button>
+        <script>
+            let socket;
+
+            function connectSocket() {
+                // socket = new WebSocket("http://localhost:9091/ws");
+                socket = new WebSocket("http://127.0.0.1:60829/ws");
+                socket.onopen = function (event) {
+                    console.log("WebSocket 连接已建立。");
+                };
+
+                socket.onmessage = function (event) {
+                    console.log("接收到消息：", event.data);
+                };
+
+                socket.onclose = function (event) {
+                    if (event.wasClean) {
+                        console.log(
+                            "连接已关闭，状态码：",
+                            event.code,
+                            "原因：",
+                            event.reason,
+                        );
+                    } else {
+                        console.log("连接意外关闭");
+                    }
+                };
+
+                socket.onerror = function (error) {
+                    console.log("发生错误：", error);
+                };
+            }
+
+            function sendMessage() {
+                const messageInput = document.getElementById("messageInput");
+                const message = messageInput.value;
+                if (message) {
+                    socket.send(message);
+                    messageInput.value = "";
+                }
+            }
+            function closeSocket() {
+                socket.close(1000, "Closing connection");
+            }
+        </script>
+    </body>
+</html>
