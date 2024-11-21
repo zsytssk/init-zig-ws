@@ -37,14 +37,15 @@ fn checkPortAvailable(port: u16) !void {
     defer server.deinit();
 }
 
+const ClientList = std.SinglyLinkedList(App.WebsocketHandler);
 const App = struct {
     allocator: std.mem.Allocator,
-    clients: std.SinglyLinkedList(WebsocketHandler),
+    clients: ClientList,
     tempMsg: utils.MsgStr,
     const Self = @This();
     pub fn init(allocator: std.mem.Allocator) !App {
         const TempMsg = try utils.MsgStr.init(allocator);
-        return App{ .tempMsg = TempMsg, .clients = std.SinglyLinkedList(App.WebsocketHandler){}, .allocator = allocator };
+        return App{ .tempMsg = TempMsg, .clients = ClientList{}, .allocator = allocator };
     }
     pub fn broadcast(self: *App, msg: []const u8) !void {
         const clients = self.clients;
@@ -79,7 +80,7 @@ const App = struct {
                 .context = context,
             };
 
-            const node = try context.app.allocator.create(std.SinglyLinkedList(WebsocketHandler).Node);
+            const node = try context.app.allocator.create(ClientList.Node);
             node.data = handler;
 
             context.app.clients.prepend(node);
@@ -91,8 +92,8 @@ const App = struct {
         }
 
         pub fn clientMessage(self: *WebsocketHandler, data: []const u8) !void {
-            if (utils.eql(u8, data, "getInit")) {
-                const TempMsg = self.context.?.app.tempMsg;
+            if (std.mem.eql(u8, data, "getInit")) {
+                var TempMsg = self.context.?.app.tempMsg;
                 try self.conn.write(TempMsg.get());
             } else {
                 try self.conn.write(data);
