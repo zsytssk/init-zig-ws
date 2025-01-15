@@ -1,11 +1,16 @@
 .{
-	.name = "websocket",
-	.version = "0.1.0",
-	.dependencies = .{},
-	.paths = .{
-		"readme.md",
-		"build.zig",
-		"build.zig.zon",
-		"src",
-	},
+    .name = "websocket",
+    .version = "0.1.0",
+    .dependencies = .{
+        .httpz = .{
+            .url = "git+https://github.com/karlseguin/http.zig?ref=zig-0.13#2a910af45a6a733adbcf9e5e56642c05f4f5c769",
+            .hash = "12203254adcaba63705ff7ecf1894a5a26d5a5a0a9cfecd01423775fa5566b625138",
+        },
+    },
+    .paths = .{
+        "readme.md",
+        "build.zig",
+        "build.zig.zon",
+        "src",
+    },
 }
