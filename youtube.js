@@ -100,9 +100,10 @@ async function loopVideoList(video, all_time_list) {
   let all_time_arr = all_time_list.split(">");
   let [count, cur_index] = all_time_arr[0].split(",").map(Number);
   let time_list = all_time_arr[1];
-  const time_arr = time_list.split(";");
+  let time_arr = time_list.split(";");
   time_arr.pop();
-  outerLoop: for (let i = cur_index; i < time_arr.length; i++) {
+  time_arr = [...time_arr.slice(cur_index), ...time_arr.slice(0, cur_index)];
+  outerLoop: for (let i = 0; i < time_arr.length; i++) {
     const [start_time, end_time] = time_arr[i].split(",");
     for (let num = 0; num < count; num++) {
       const ok = await playOne(video, start_time, end_time);
