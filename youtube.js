@@ -95,16 +95,12 @@ function togglePause(video) {
   triggerKeyEvent(75);
 }
 
-async function loopVideoList(video, all_time_list) {
+async function loopVideoList(video, info) {
   isOnLoop = true;
-  let all_time_arr = all_time_list.split(">");
-  let [count, cur_index] = all_time_arr[0].split(",").map(Number);
-  let time_list = all_time_arr[1];
-  let time_arr = time_list.split(";");
-  time_arr.pop();
-  time_arr = [...time_arr.slice(cur_index), ...time_arr.slice(0, cur_index)];
-  outerLoop: for (let i = 0; i < time_arr.length; i++) {
-    const [start_time, end_time] = time_arr[i].split(",");
+  let { count, cur_index, time_list } = info;
+  time_list = [...time_list.slice(cur_index), ...time_list.slice(0, cur_index)];
+  outerLoop: for (let item of time_list) {
+    const [start_time, end_time] = item;
     for (let num = 0; num < count; num++) {
       const ok = await playOne(video, start_time, end_time);
       if (!ok) {
@@ -128,8 +124,9 @@ async function loopVideoList(video, all_time_list) {
     ws = null;
   };
   ws.onmessage = function (evt) {
-    const [type, action, link, start_time, end_time] = evt.data.split("|");
-    console.log(`test:>`, [type, action, link, start_time]);
+    const { type, action, link, time, time_list, count, cur_index } =
+      JSON.parse(evt.data);
+
     if (type !== "youtube" || !location.href.startsWith(link)) {
       return;
     }
@@ -138,16 +135,16 @@ async function loopVideoList(video, all_time_list) {
     switch (action) {
       case "jump":
         clearLoopVideo();
-        video.currentTime = start_time;
+        video.currentTime = time[0];
         video.play();
         break;
       case "loop":
         clearLoopVideo();
-        loopVideo(video, start_time, end_time);
+        loopVideo(video, ...time);
         break;
       case "list_loop":
         clearLoopVideo();
-        loopVideoList(video, start_time);
+        loopVideoList(video, { time_list, count, cur_index });
         break;
       case "toggle_subtitle":
         triggerKeyEvent("C".charCodeAt(0));
